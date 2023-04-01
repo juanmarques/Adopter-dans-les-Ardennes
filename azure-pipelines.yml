@@ -1,9 +1,23 @@
-trigger:
-- main
 
-steps:
-- bash: |
-    git push --prune https://$(GITHUB_PAT)@github.com/$REPO_NAME \
-        +refs/remotes/origin/*:refs/heads/* +refs/tags/*:refs/tags/*
-  displayName: 'Copy to Github'
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+ stages:
+ - stage: Build
+   jobs:
+   - job: Build
+     pool:
+        vmImage: 'ubuntu-latest'
+        trigger:
+        - task: Maven@4
+        inputs:
+            mavenPomFile: 'pom.xml'
+            goals: 'install'
+            publishJUnitResults: true
+            testResultsFiles: '**/surefire-reports/TEST-*.xml'
+            codeCoverageToolOption: 'JaCoCo'
+            javaHomeOption: 'JDKVersion'
+            jdkVersionOption: '1.17'
+            mavenVersionOption: 'Default'
+            mavenAuthenticateFeed: false
+            effectivePomSkip: false
+            sonarQubeRunAnalysis: false
+            findBugsRunAnalysis: true
+            spotBugsRunAnalysis: true
