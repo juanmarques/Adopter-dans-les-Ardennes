@@ -13,9 +13,10 @@ import org.springframework.data.annotation.Id;
 public abstract class BaseEntity {
 
     @Id
-    private String id;
+    private Long id;
     @NotBlank
     private String name;
+    private String imageUrl;
     private String address;
     private String phone;
     @Email
