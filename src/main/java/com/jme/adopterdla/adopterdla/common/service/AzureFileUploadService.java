@@ -1,4 +1,4 @@
-package com.jme.adopterdla.adopterdla.configs;
+package com.jme.adopterdla.adopterdla.common.service;
 
 import com.azure.storage.blob.BlobContainerClient;
 import lombok.AllArgsConstructor;

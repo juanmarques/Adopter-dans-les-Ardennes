@@ -1,6 +1,6 @@
 package com.jme.adopterdla.adopterdla.adopters;
 
-import com.jme.adopterdla.adopterdla.AbstractContainerBaseTest;
+import com.jme.adopterdla.adopterdla.AbstractUtilsBaseTest;
 import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,9 +19,9 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AdopterControllerTest extends AbstractContainerBaseTest {
+public class AdopterControllerTest extends AbstractUtilsBaseTest {
 
-    private static final String BASE_URI = "http://localhost:8080/adopters";
+    private static final String BASE_URI = "http://localhost:8080/api/adopters";
 
     @Test
     @Order(1)
@@ -30,6 +30,7 @@ public class AdopterControllerTest extends AbstractContainerBaseTest {
         File file = Paths.get("src/test/resources/adopters/adopter-1.png").toFile();
 
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .multiPart(new MultiPartSpecBuilder(new FileInputStream(file)).fileName("adopter_test_image.jpeg")
                         .controlName("imageData")
                         .mimeType("image/png")
@@ -60,6 +61,7 @@ public class AdopterControllerTest extends AbstractContainerBaseTest {
     public void testGetAdopter() {
 
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .pathParam("id", 1)
                 .when()
                 .get(BASE_URI + "/{id}")
@@ -78,6 +80,7 @@ public class AdopterControllerTest extends AbstractContainerBaseTest {
     @Order(3)
     public void testGetAllAdopters() {
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .when()
                 .get(BASE_URI)
                 .then()

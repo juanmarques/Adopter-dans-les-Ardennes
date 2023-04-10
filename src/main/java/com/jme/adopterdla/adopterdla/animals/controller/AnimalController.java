@@ -18,7 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/animals")
+@RequestMapping("api/animals")
 @RequiredArgsConstructor
 @Tag(name = "Animal", description = "API for Animal operations")
 public class AnimalController {

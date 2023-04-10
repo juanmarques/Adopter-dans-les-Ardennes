@@ -17,7 +17,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/adopters")
+@RequestMapping("api/adopters")
 @RequiredArgsConstructor
 @Tag(name = "Adopter", description = "API for Adopter operations")
 public class AdopterController {
