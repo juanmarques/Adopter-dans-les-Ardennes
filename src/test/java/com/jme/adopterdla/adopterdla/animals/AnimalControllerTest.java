@@ -1,6 +1,6 @@
 package com.jme.adopterdla.adopterdla.animals;
 
-import com.jme.adopterdla.adopterdla.AbstractContainerBaseTest;
+import com.jme.adopterdla.adopterdla.AbstractUtilsBaseTest;
 import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,9 +19,9 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class AnimalControllerTest extends AbstractContainerBaseTest {
+public class AnimalControllerTest extends AbstractUtilsBaseTest {
 
-    private static final String BASE_URI = "http://localhost:8080/animals";
+    private static final String BASE_URI = "http://localhost:8080/api/animals";
 
     @Test
     @Order(1)
@@ -30,6 +30,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
         File file = Paths.get("src/test/resources/animals/image.jpeg").toFile();
 
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .multiPart(new MultiPartSpecBuilder(new FileInputStream(file)).fileName("test_image.jpeg")
                         .controlName("imageData")
                         .mimeType("image/png")
@@ -65,6 +66,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
     public void testGetAnimal() {
 
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .pathParam("id", 1)
                 .when()
                 .get(BASE_URI + "/{id}")
@@ -81,6 +83,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
     @Order(3)
     public void testGetAllAnimals() {
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .when()
                 .get(BASE_URI)
                 .then()
@@ -93,6 +96,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
     @Order(4)
     public void testGetAllAnimalsByIsAvailable() {
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .queryParam("isAvailable", true)
                 .when()
                 .get(BASE_URI + "/available")
@@ -107,6 +111,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
     @Order(5)
     public void testUpdateAnimal() {
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .multiPart("data", "{ \"name\": \"Updated Animal\", \"age\": 3, \"breed\": \"Updated Breed\", \"isAvailable\": false }", "application/json")
                 .multiPart("imageData", "animals/updated_image.jpeg", getClass().getResourceAsStream("/animals/updated_image.jpeg"))
                 .pathParam("id", 1)
@@ -116,6 +121,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
                 .statusCode(200);
 
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .pathParam("id", 1)
                 .when()
                 .get(BASE_URI + "/{id}")
@@ -132,6 +138,7 @@ public class AnimalControllerTest extends AbstractContainerBaseTest {
     @Order(6)
     public void testDeleteAnimal() {
         given()
+                .header("Authorization", "Bearer " + getAdminToken())
                 .pathParam("id", 1)
                 .when()
                 .delete(BASE_URI + "/{id}")

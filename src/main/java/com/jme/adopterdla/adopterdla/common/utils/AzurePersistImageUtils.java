@@ -1,6 +1,6 @@
 package com.jme.adopterdla.adopterdla.common.utils;
 
-import com.jme.adopterdla.adopterdla.configs.AzureFileUploadService;
+import com.jme.adopterdla.adopterdla.common.service.AzureFileUploadService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;

@@ -5,7 +5,7 @@ import com.jme.adopterdla.adopterdla.animals.entity.Animal;
 import com.jme.adopterdla.adopterdla.animals.mapper.AnimalMapper;
 import com.jme.adopterdla.adopterdla.animals.repository.AnimalRepository;
 import com.jme.adopterdla.adopterdla.common.utils.AzurePersistImageUtils;
-import com.jme.adopterdla.adopterdla.configs.AzureFileUploadService;
+import com.jme.adopterdla.adopterdla.common.service.AzureFileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.codec.multipart.FilePart;
