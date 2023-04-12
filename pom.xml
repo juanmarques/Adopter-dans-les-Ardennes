@@ -57,6 +57,13 @@
             <groupId>com.azure.spring</groupId>
             <artifactId>spring-cloud-azure-starter-storage</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>applicationinsights-runtime-attach</artifactId>
+            <version>3.4.11</version>
+        </dependency>
+
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
