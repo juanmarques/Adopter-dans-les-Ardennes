@@ -42,7 +42,7 @@ public class SecurityConfig {
         http.csrf().disable()
                 // Authorize access to /api/auth/** for all users
                 .authorizeExchange()
-                .pathMatchers("/api/auth/**").permitAll()
+                .pathMatchers("/api/auth/**","/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
                 // Require authentication for all other requests
                 .anyExchange().authenticated()
                 .and()
