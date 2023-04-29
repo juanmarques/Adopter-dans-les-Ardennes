@@ -1,5 +1,9 @@
 package com.jme.adopterdla.adopterdla.configs.security;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -60,5 +64,35 @@ public class SecurityConfig {
     @Bean
     public ServerWebExchangeMatcher pathMatcher() {
         return new PathPatternParserServerWebExchangeMatcher("/api/**");
+    }
+
+    /**
+     * Customize the OpenAPI definition to include the security information for JWT Bearer Token authentication.
+     *
+     * @return the customized OpenAPI definition
+     */
+    @Bean
+    public OpenAPI customizeOpenAPI() {
+        // Define the security scheme name
+        final String securitySchemeName = "bearerAuth";
+
+        // Create a new OpenAPI definition
+        return new OpenAPI()
+                // Add a security item to the OpenAPI definition
+                .addSecurityItem(new SecurityRequirement()
+                        // Add the security scheme name to the list of required security schemes
+                        .addList(securitySchemeName))
+                // Define the components of the OpenAPI definition
+                .components(new Components()
+                        // Add the security scheme to the components
+                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                                // Set the security scheme name
+                                .name(securitySchemeName)
+                                // Set the security scheme type as HTTP
+                                .type(SecurityScheme.Type.HTTP)
+                                // Set the HTTP scheme as "bearer"
+                                .scheme("bearer")
+                                // Set the bearer token format as "JWT"
+                                .bearerFormat("JWT")));
     }
 }
