@@ -1,10 +1,10 @@
 package com.jme.adopterdla.adopterdla.configs.security.service;
 
+import com.jme.adopterdla.adopterdla.auth.CustomUserDetails;
 import com.jme.adopterdla.adopterdla.auth.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -21,9 +21,10 @@ public class UserDetailService {
     @Bean
     public ReactiveUserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> userRepository.findByUsername(username)
-                .map(user -> User.builder()
+                .map(user -> CustomUserDetails.customBuilder()
                         .username(user.getUsername())
                         .password(user.getPassword())
+                        .friendlyName(user.getName())
                         .authorities(user.getRoles().stream()
                                 .map(SimpleGrantedAuthority::new)
                                 .toList())

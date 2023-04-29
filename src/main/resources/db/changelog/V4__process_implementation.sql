@@ -11,10 +11,10 @@ CREATE TABLE schedules
 CREATE TABLE volunteers
 (
     id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(255) NOT NULL,
+    name        TEXT NOT NULL,
     notes       TEXT,
-    email       VARCHAR(255),
-    phone       VARCHAR(20),
+    email       TEXT,
+    phone       TEXT,
     address     TEXT,
     image_url   TEXT,
     schedule_id BIGSERIAL REFERENCES schedules (id),

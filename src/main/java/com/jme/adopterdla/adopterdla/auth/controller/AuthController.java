@@ -1,5 +1,6 @@
 package com.jme.adopterdla.adopterdla.auth.controller;
 
+import com.jme.adopterdla.adopterdla.auth.CustomUserDetails;
 import com.jme.adopterdla.adopterdla.auth.dto.JwtResponse;
 import com.jme.adopterdla.adopterdla.auth.dto.LoginRequest;
 import com.jme.adopterdla.adopterdla.configs.security.JwtAuthenticationManager;
@@ -19,6 +20,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -65,14 +67,18 @@ public class AuthController {
     })
     public Mono<ResponseEntity<JwtResponse>> login(@RequestBody LoginRequest loginRequest) {
         return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password()))
-                .map(authentication -> {
-                    var token = jwtService.generateToken(authentication, false);
-                    var refreshToken = jwtService.generateToken(authentication, true);
-                    return ResponseEntity.ok(new JwtResponse(token, refreshToken, authentication.getName(), authentication.getAuthorities()
-                            .stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .toList()));
-                })
+                .flatMap(authentication -> userDetailService.findByUsername(authentication.getName())
+                        // Find the user details using the user details service based on the authenticated username
+                        .map(userDetails -> {
+                            var token = jwtService.generateToken(authentication, false);
+                            var refreshToken = jwtService.generateToken(authentication, true);
+                            return ResponseEntity.ok(new JwtResponse(token, refreshToken, ((CustomUserDetails) userDetails).getFriendlyName(),
+                                    userDetails.getAuthorities().stream()
+                                            .map(GrantedAuthority::getAuthority)
+                                            .toList()));
+                        }))
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password.")))
+                // Throw an error if the user is not found
                 .onErrorResume(AuthenticationException.class, e -> Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()));
     }
 
@@ -94,16 +100,19 @@ public class AuthController {
         try {
             jwtService.validateToken(refreshToken);
             String username = jwtService.extractUsername(refreshToken);
-            return userDetailService.findByUsername(username).flatMap(userDetails -> {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                String newAccessToken = jwtService.generateToken(authentication, false);
-                String newRefreshToken = jwtService.generateToken(authentication, true);
-                return Mono.just(ResponseEntity.ok(new JwtResponse(newAccessToken, newRefreshToken, username, userDetails.getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList())));
-            });
+            return userDetailService.findByUsername(username)
+                    .map(userDetails -> (CustomUserDetails) userDetails)
+                    // Cast the UserDetails object to CustomUserDetails to retrieve the friendlyName field
+                    .flatMap(customUserDetails -> {
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        String newAccessToken = jwtService.generateToken(authentication, false);
+                        String newRefreshToken = jwtService.generateToken(authentication, true);
+                        return Mono.just(ResponseEntity.ok(new JwtResponse(newAccessToken, newRefreshToken, customUserDetails.getFriendlyName(), customUserDetails.getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList())));
+                    });
         } catch (
                 ExpiredJwtException |
                 UnsupportedJwtException |
@@ -114,5 +123,6 @@ public class AuthController {
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
         }
     }
+
 
 }

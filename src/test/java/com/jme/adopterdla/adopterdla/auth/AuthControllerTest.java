@@ -37,7 +37,7 @@ public class AuthControllerTest extends AbstractUtilsBaseTest {
     @Order(1)
     public void givenValidCredentials_whenLogin_thenStatus200() {
 
-        this.userRepository.save(new User("username", "password", List.of("ROLE_USER"))).block();
+        this.userRepository.save(new User("username", "adopt@adopterdla.com", "John", "password", List.of("ROLE_USER"))).block();
 
         var request = new LoginRequest("username", "password");
 

@@ -1,7 +1,10 @@
 package com.jme.adopterdla.adopterdla.volunteers.service;
 
+import com.jme.adopterdla.adopterdla.auth.entity.User;
+import com.jme.adopterdla.adopterdla.auth.repository.UserRepository;
 import com.jme.adopterdla.adopterdla.common.entity.Schedule;
 import com.jme.adopterdla.adopterdla.common.entity.repository.ScheduleRepository;
+import com.jme.adopterdla.adopterdla.utils.RandomPasswordGenerator;
 import com.jme.adopterdla.adopterdla.volunteers.dto.VolunteerDTO;
 import com.jme.adopterdla.adopterdla.volunteers.entity.Volunteer;
 import com.jme.adopterdla.adopterdla.volunteers.mapper.VolunteerMapper;
@@ -10,6 +13,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * Service implementation for managing volunteers.
@@ -20,6 +25,7 @@ public class VolunteerServiceImpl implements VolunteerService {
 
     private final VolunteerRepository volunteerRepository;
     private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
     private final VolunteerMapper volunteerMapper;
 
     /**
@@ -82,7 +88,14 @@ public class VolunteerServiceImpl implements VolunteerService {
 
             // Determine if we need to save a new volunteer or update an existing one
             if (volunteerDTO.id() == null) {
-                return volunteerRepository.save(volunteer);
+                User newUser = new User(volunteer.getEmail(),
+                        volunteer.getEmail(),
+                        volunteer.getName(),
+                        RandomPasswordGenerator.generateRandomPassword(),
+                        List.of("ROLE_USER"));
+
+                return userRepository.save(newUser)
+                        .then(volunteerRepository.save(volunteer));
             } else {
                 return volunteerRepository.findById(volunteerDTO.id())
                         .doOnNext(existingVolunteer -> volunteerMapper.updateAdoptionProcessFromDTO(volunteerDTO, existingVolunteer))
