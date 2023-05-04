@@ -44,6 +44,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
     public Mono<Authentication> authenticate(Authentication authentication) {
         if (authentication.isAuthenticated()) {
             // If the authentication object is already authenticated, return it as is
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             return Mono.just(authentication);
         }
         return Mono.just(authentication)
@@ -53,7 +54,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
                         // Throw an error if the user is not found
                         .flatMap(userDetails -> {
                             // Check if the entered password matches the stored password using the password encoder
-                            if (passwordEncoder.matches(auth.getCredentials().toString(), passwordEncoder.encode(userDetails.getPassword()))) {
+                            if (passwordEncoder.matches(auth.getCredentials().toString(), userDetails.getPassword())) {
                                 SecurityContextHolder.getContext().setAuthentication(authentication);
                                 return Mono.just(userDetails);
                             } else {

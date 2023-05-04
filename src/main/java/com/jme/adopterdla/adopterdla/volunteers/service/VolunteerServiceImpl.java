@@ -1,7 +1,7 @@
 package com.jme.adopterdla.adopterdla.volunteers.service;
 
-import com.jme.adopterdla.adopterdla.auth.entity.User;
-import com.jme.adopterdla.adopterdla.auth.repository.UserRepository;
+import com.jme.adopterdla.adopterdla.user.entity.User;
+import com.jme.adopterdla.adopterdla.user.repository.UserRepository;
 import com.jme.adopterdla.adopterdla.common.entity.Schedule;
 import com.jme.adopterdla.adopterdla.common.entity.repository.ScheduleRepository;
 import com.jme.adopterdla.adopterdla.utils.RandomPasswordGenerator;

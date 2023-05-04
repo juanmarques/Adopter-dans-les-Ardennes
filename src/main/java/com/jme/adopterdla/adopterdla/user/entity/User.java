@@ -1,4 +1,4 @@
-package com.jme.adopterdla.adopterdla.auth.entity;
+package com.jme.adopterdla.adopterdla.user.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

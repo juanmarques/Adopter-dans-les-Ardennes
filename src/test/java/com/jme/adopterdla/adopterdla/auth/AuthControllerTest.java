@@ -2,8 +2,8 @@ package com.jme.adopterdla.adopterdla.auth;
 
 import com.jme.adopterdla.adopterdla.AbstractUtilsBaseTest;
 import com.jme.adopterdla.adopterdla.auth.dto.LoginRequest;
-import com.jme.adopterdla.adopterdla.auth.entity.User;
-import com.jme.adopterdla.adopterdla.auth.repository.UserRepository;
+import com.jme.adopterdla.adopterdla.user.entity.User;
+import com.jme.adopterdla.adopterdla.user.repository.UserRepository;
 import com.jme.adopterdla.adopterdla.configs.security.JwtAuthenticationManager;
 import com.jme.adopterdla.adopterdla.configs.security.service.JwtService;
 import org.junit.jupiter.api.*;

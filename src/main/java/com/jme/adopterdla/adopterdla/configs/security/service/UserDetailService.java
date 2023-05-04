@@ -1,7 +1,7 @@
 package com.jme.adopterdla.adopterdla.configs.security.service;
 
 import com.jme.adopterdla.adopterdla.auth.CustomUserDetails;
-import com.jme.adopterdla.adopterdla.auth.repository.UserRepository;
+import com.jme.adopterdla.adopterdla.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
