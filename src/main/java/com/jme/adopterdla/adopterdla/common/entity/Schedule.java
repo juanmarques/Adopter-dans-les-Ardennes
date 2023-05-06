@@ -7,17 +7,19 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.DayOfWeek;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table("Schedule")
+@Table("Schedules")
 public class Schedule {
 
     @Id
     private Long id;
-    private Set<DayOfWeek> days;
+    private Set<Integer> days;
     private int startTimeHour;
     private int startTimeMinute;
     private int endTimeHour;
@@ -26,9 +28,9 @@ public class Schedule {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Hours: ");
-        for (DayOfWeek day : days) {
-            sb.append(day.toString(), 0, 3).append(", ");
+        sb.append("Days: ");
+        for (Integer dayValue : days) {
+            sb.append(DayOfWeek.of(dayValue).toString(), 0, 3).append(", ");
         }
         sb.deleteCharAt(sb.length() - 2);
         sb.append("from ")

@@ -5,6 +5,7 @@ import com.jme.adopterdla.adopterdla.volunteers.service.VolunteerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,8 +38,8 @@ public class VolunteerController {
     @Operation(summary = "Create a new volunteer")
     public Mono<VolunteerDTO> createVolunteer(
             @Parameter(description = "Volunteer DTO with the volunteer's information", required = true, schema = @Schema(implementation = VolunteerDTO.class))
-            @RequestBody VolunteerDTO volunteerDTO) {
-        return volunteerService.save(volunteerDTO);
+            @RequestPart("imageData") FilePart imageData, @RequestPart("data") VolunteerDTO volunteerDTO) {
+        return volunteerService.save(volunteerDTO,imageData);
     }
 
     @PutMapping("/{id}")
@@ -47,8 +48,8 @@ public class VolunteerController {
             @Parameter(description = "Volunteer ID", required = true)
             @PathVariable Long id,
             @Parameter(description = "Volunteer DTO with updated information", required = true, schema = @Schema(implementation = VolunteerDTO.class))
-            @RequestBody VolunteerDTO volunteerDTO) {
-        return volunteerService.save(volunteerDTO);
+            @RequestPart("imageData") FilePart imageData, @RequestPart("data") VolunteerDTO volunteerDTO) {
+        return volunteerService.save(volunteerDTO,imageData);
     }
 
     @DeleteMapping("/{id}")

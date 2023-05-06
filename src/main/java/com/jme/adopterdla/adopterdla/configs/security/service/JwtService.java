@@ -1,8 +1,6 @@
 package com.jme.adopterdla.adopterdla.configs.security.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -44,7 +42,7 @@ public class JwtService {
      * Generate a JWT for the given authentication.
      *
      * @param authentication The authentication for which to generate a token.
-     * @param refreshToken Whether the token is a refresh token or not.
+     * @param refreshToken   Whether the token is a refresh token or not.
      * @return The generated token.
      */
     public String generateToken(Authentication authentication, boolean refreshToken) {
@@ -53,14 +51,14 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .toList());
         var user = (User) authentication.getPrincipal();
-        return createToken(claims, user.getUsername(),refreshToken);
+        return createToken(claims, user.getUsername(), refreshToken);
     }
 
     /**
      * Create a JWT with the given claims and subject.
      *
-     * @param claims  The claims to include in the token.
-     * @param subject The subject of the token.
+     * @param claims       The claims to include in the token.
+     * @param subject      The subject of the token.
      * @param refreshToken Whether the token is a refresh token or not.
      * @return The generated token.
      */
@@ -88,8 +86,13 @@ public class JwtService {
      * @return {@code true} if the token is valid, {@code false} otherwise.
      */
     public boolean validateToken(String token) {
-        Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-        return true;
+        try {
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
+
     }
 
     /**
@@ -142,8 +145,12 @@ public class JwtService {
      * @return true if the token is expired, false otherwise.
      */
     public boolean isTokenExpired(String token) {
-        final Date expiration = extractExpiration(token);
-        return expiration.before(new Date());
+        try {
+            final Date expiration = extractExpiration(token);
+            return expiration.before(new Date());
+        } catch (JwtException e) {
+            return true;
+        }
     }
 
     /**

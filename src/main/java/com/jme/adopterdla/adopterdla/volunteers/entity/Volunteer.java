@@ -14,6 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @AllArgsConstructor
 public class Volunteer extends BaseEntity {
 
+    private boolean active;
     private String notes;
     private Long scheduleId;
 }

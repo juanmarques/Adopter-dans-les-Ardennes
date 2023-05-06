@@ -1,5 +1,6 @@
 package com.jme.adopterdla.adopterdla.configs.security;
 
+import com.jme.adopterdla.adopterdla.auth.exception.UnauthorizedException;
 import com.jme.adopterdla.adopterdla.configs.security.service.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -51,7 +52,8 @@ public class JwtAuthenticationConverter implements ServerAuthenticationConverter
         if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
             String jwt = authorizationHeader.substring(7);
             if (jwtService.isTokenExpired(jwt)) {
-                return Mono.empty();
+                // Token is expired
+                return Mono.error(new UnauthorizedException("Token is expired"));
             } else if (jwtService.validateToken(jwt)) {
                 String username = jwtService.extractUsername(jwt);
                 List<SimpleGrantedAuthority> authorities = jwtService.extractAuthorities(jwt);

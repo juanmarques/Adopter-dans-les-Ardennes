@@ -1,5 +1,6 @@
 package com.jme.adopterdla.adopterdla.volunteers.service;
 
+import com.jme.adopterdla.adopterdla.common.utils.AzurePersistImageUtils;
 import com.jme.adopterdla.adopterdla.user.entity.User;
 import com.jme.adopterdla.adopterdla.user.repository.UserRepository;
 import com.jme.adopterdla.adopterdla.common.entity.Schedule;
@@ -10,11 +11,14 @@ import com.jme.adopterdla.adopterdla.volunteers.entity.Volunteer;
 import com.jme.adopterdla.adopterdla.volunteers.mapper.VolunteerMapper;
 import com.jme.adopterdla.adopterdla.volunteers.repository.VolunteerRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for managing volunteers.
@@ -27,6 +31,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
     private final VolunteerMapper volunteerMapper;
+    private final AzurePersistImageUtils azurePersistImageUtils;
 
     /**
      * Finds a volunteer by their id and returns the corresponding VolunteerDTO.
@@ -61,49 +66,66 @@ public class VolunteerServiceImpl implements VolunteerService {
      * @return the saved VolunteerDTO
      */
     @Override
-    public Mono<VolunteerDTO> save(VolunteerDTO volunteerDTO) {
-        Schedule schedule = new Schedule(0L, volunteerDTO.days(),
-                volunteerDTO.startTimeHour(), volunteerDTO.startTimeMinute(),
-                volunteerDTO.endTimeHour(), volunteerDTO.endTimeMinute());
+    public Mono<VolunteerDTO> save(VolunteerDTO volunteerDTO, FilePart imageData) {
 
-        // Determine if we need to save a new schedule or update an existing one
-        Mono<Schedule> scheduleMono;
-        if (volunteerDTO.scheduleId() == null) {
-            scheduleMono = scheduleRepository.save(schedule);
-        } else {
-            scheduleMono = scheduleRepository.findById(volunteerDTO.scheduleId())
-                    .doOnNext(existingSchedule -> {
-                        existingSchedule.setDays(schedule.getDays());
-                        existingSchedule.setStartTimeHour(schedule.getStartTimeHour());
-                        existingSchedule.setStartTimeMinute(schedule.getStartTimeMinute());
-                        existingSchedule.setEndTimeHour(schedule.getEndTimeHour());
-                        existingSchedule.setEndTimeMinute(schedule.getEndTimeMinute());
-                    })
-                    .flatMap(scheduleRepository::save);
-        }
+        Mono<String> imageUrlMono = imageData != null
+                ? azurePersistImageUtils.saveImageData(imageData.content(),
+                azurePersistImageUtils.getExtensionByStringHandling(imageData.filename()).orElse("jpeg"))
+                : Mono.empty();
 
-        return scheduleMono.flatMap(savedSchedule -> {
-            Volunteer volunteer = volunteerMapper.toEntity(volunteerDTO);
-            volunteer.setScheduleId(savedSchedule.getId());
+        return imageUrlMono.defaultIfEmpty("").flatMap(imageUrl -> {
 
-            // Determine if we need to save a new volunteer or update an existing one
-            if (volunteerDTO.id() == null) {
-                User newUser = new User(volunteer.getEmail(),
-                        volunteer.getEmail(),
-                        volunteer.getName(),
-                        RandomPasswordGenerator.generateRandomPassword(),
-                        List.of("ROLE_USER"));
+            Schedule schedule = new Schedule(0L,volunteerDTO.days().stream().map(DayOfWeek::getValue).collect(Collectors.toSet()),
+                    volunteerDTO.startTimeHour(), volunteerDTO.startTimeMinute(),
+                    volunteerDTO.endTimeHour(), volunteerDTO.endTimeMinute());
 
-                return userRepository.save(newUser)
-                        .then(volunteerRepository.save(volunteer));
+            // Determine if we need to save a new schedule or update an existing one
+            Mono<Schedule> scheduleMono;
+            if (volunteerDTO.scheduleId() == null) {
+                scheduleMono = scheduleRepository.save(schedule);
             } else {
-                return volunteerRepository.findById(volunteerDTO.id())
-                        .doOnNext(existingVolunteer -> volunteerMapper.updateAdoptionProcessFromDTO(volunteerDTO, existingVolunteer))
-                        .flatMap(volunteerRepository::save);
+                scheduleMono = scheduleRepository.findById(volunteerDTO.scheduleId())
+                        .doOnNext(existingSchedule -> {
+                            existingSchedule.setDays(schedule.getDays());
+                            existingSchedule.setStartTimeHour(schedule.getStartTimeHour());
+                            existingSchedule.setStartTimeMinute(schedule.getStartTimeMinute());
+                            existingSchedule.setEndTimeHour(schedule.getEndTimeHour());
+                            existingSchedule.setEndTimeMinute(schedule.getEndTimeMinute());
+                        })
+                        .flatMap(scheduleRepository::save);
             }
-        }).flatMap(savedVolunteer -> scheduleRepository.findById(savedVolunteer.getScheduleId())
-                .map(savedSchedule -> volunteerMapper.toDTO(savedVolunteer, savedSchedule)));
+
+            return scheduleMono.flatMap(savedSchedule -> {
+                Volunteer volunteer = volunteerMapper.toEntity(volunteerDTO);
+                volunteer.setScheduleId(savedSchedule.getId());
+
+                // Determine if we need to save a new volunteer or update an existing one
+                if (volunteerDTO.id() == null) {
+                    User newUser = new User(volunteer.getEmail(),
+                            volunteer.getEmail(),
+                            volunteer.getName(),
+                            RandomPasswordGenerator.generateRandomPassword(),
+                            List.of("ROLE_USER"));
+
+                    volunteer.setImageUrl(imageUrl);
+                    return userRepository.save(newUser)
+                            .then(volunteerRepository.save(volunteer));
+                } else {
+                    return volunteerRepository.findById(volunteerDTO.id())
+                            .doOnNext(existingVolunteer -> volunteerMapper.updateAdoptionProcessFromDTO(volunteerDTO, existingVolunteer))
+                            .flatMap(volunteer1 -> {
+                                if(!volunteer1.isActive()){
+                                return    userRepository.deleteByEmail(volunteer1.getEmail())
+                                            .then(Mono.defer(() -> volunteerRepository.save(volunteer1)));
+                                }
+                                return volunteerRepository.save(volunteer1);
+                            });
+                }
+            }).flatMap(savedVolunteer -> scheduleRepository.findById(savedVolunteer.getScheduleId())
+                    .map(savedSchedule -> volunteerMapper.toDTO(savedVolunteer, savedSchedule)));
+        });
     }
+
 
     @Override
     public Mono<Void> deleteById(Long id) {
