@@ -29,4 +29,5 @@ public class Animal{
     private String illness;
     private String notes;
     private Boolean isAvailable;
+    private Boolean hasBeenAdopted;
 }

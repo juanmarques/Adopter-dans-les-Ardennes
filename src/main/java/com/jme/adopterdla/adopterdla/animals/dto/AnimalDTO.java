@@ -23,7 +23,8 @@ public record AnimalDTO(
         String electronicChip,
         String illness,
         String notes,
-        boolean isAvailable
+        boolean isAvailable,
+        boolean hasBeenAdopted
 ) {
 
     @Builder
