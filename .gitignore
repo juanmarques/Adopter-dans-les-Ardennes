@@ -37,3 +37,4 @@ build/
 /mvnw.cmd
 /docker/local-postgres/var
 /docker/var/pgdata/
+/applicationinsights.log
