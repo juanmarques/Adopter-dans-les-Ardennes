@@ -1,6 +1,7 @@
 package com.jme.adopterdla.adopterdla.animals.service;
 
 import com.jme.adopterdla.adopterdla.animals.dto.AnimalDTO;
+import com.jme.adopterdla.adopterdla.animals.dto.AnimalNameAndIdDTO;
 import com.jme.adopterdla.adopterdla.animals.entity.Animal;
 import com.jme.adopterdla.adopterdla.animals.mapper.AnimalMapper;
 import com.jme.adopterdla.adopterdla.animals.repository.AnimalRepository;
@@ -66,6 +67,15 @@ public class AnimalService {
     }
 
     /**
+     * Get the names and IDs of all animals by availability
+     *
+     * @return Flux of AnimalNameAndIdDTO representing the names and IDs of animals with the given availability status
+     */
+    public Flux<AnimalNameAndIdDTO> getAvailableAnimalNamesAndIds() {
+        return animalRepository.findNameAndIdByIsAvailable();
+    }
+
+    /**
      * Creates a new animal with the given data and image data.
      *
      * @param animalDTO the data for the animal to be created
@@ -82,6 +92,7 @@ public class AnimalService {
                     if (animalDTO.id() == null) {
                         var animal = animalMapper.toAnimal(animalDTO);
                         animal.setImageUrl(imageUrl);
+                        animal.setCode(generateCode());
                         return animalRepository.save(animal);
                     } else {
                         return animalRepository.findById(animalDTO.id())
@@ -120,7 +131,6 @@ public class AnimalService {
                     return deleteImageMono.then(animalRepository.deleteById(id));
                 });
     }
-
 
     public String generateCode() {
         Random random = new Random();

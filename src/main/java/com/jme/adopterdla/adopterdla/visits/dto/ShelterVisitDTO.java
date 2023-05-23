@@ -15,6 +15,7 @@ public record ShelterVisitDTO(
         String phone,
         String email,
         Long animalId,
+        Long adopterIdId,
         LocalDate date,
         int hour,
         int minute

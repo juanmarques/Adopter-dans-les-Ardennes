@@ -59,7 +59,7 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
         return Mono.justOrEmpty(shelterVisitDTO.id())
                 .flatMap(shelterVisitRepository::findById)
                 .defaultIfEmpty(new ShelterVisit())
-                .zipWhen(shelterVisit -> adopterRepository.findByEmail(shelterVisitDTO.email())
+                .zipWhen(shelterVisit -> adopterRepository.findById(shelterVisitDTO.adopterIdId())
                         .defaultIfEmpty(new Adopter()))
                 .flatMap(tuple -> {
                     ShelterVisit shelterVisit = tuple.getT1();
@@ -137,6 +137,7 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
                             .name(adopter.getName())
                             .phone(adopter.getPhone())
                             .email(adopter.getEmail())
+                            .adopterIdId(adopter.getId())
                             .animalId(shelter.getAnimalId())
                             .date(schedule.getScheduleDate())
                             .hour(schedule.getStartTimeHour())

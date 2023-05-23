@@ -1,6 +1,7 @@
 package com.jme.adopterdla.adopterdla.animals.controller;
 
 import com.jme.adopterdla.adopterdla.animals.dto.AnimalDTO;
+import com.jme.adopterdla.adopterdla.animals.dto.AnimalNameAndIdDTO;
 import com.jme.adopterdla.adopterdla.animals.service.AnimalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,6 +63,13 @@ public class AnimalController {
     @ApiResponse(responseCode = "200", description = "List of animals", content = @Content(array = @ArraySchema(schema = @Schema(implementation = AnimalDTO.class))))
     public Flux<AnimalDTO> getAllAnimalsByIsAvailable(@Parameter(description = "Availability status") @RequestParam boolean isAvailable) {
         return animalService.getAllAnimalsByIsAvailable(isAvailable);
+    }
+
+    @GetMapping("/names-ids")
+    @Operation(summary = "Get animal names and IDs by availability")
+    @ApiResponse(responseCode = "200", description = "List of animal names and IDs")
+    public Flux<AnimalNameAndIdDTO> getAvailableAnimalNamesAndIds() {
+        return animalService.getAvailableAnimalNamesAndIds();
     }
 
     @DeleteMapping("/{id}")

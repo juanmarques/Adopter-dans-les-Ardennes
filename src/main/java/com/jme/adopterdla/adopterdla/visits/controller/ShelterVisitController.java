@@ -40,6 +40,7 @@ public class ShelterVisitController {
                 shelterVisitDTO.phone(),
                 shelterVisitDTO.email(),
                 shelterVisitDTO.animalId(),
+                shelterVisitDTO.adopterIdId(),
                 shelterVisitDTO.date(),
                 shelterVisitDTO.hour(),
                 shelterVisitDTO.minute()
