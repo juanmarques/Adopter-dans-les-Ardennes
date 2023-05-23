@@ -7,7 +7,7 @@ create table animals
     breed text,
     arrival_date varchar(255),
     gender varchar(255) not null,
-    age integer not null,
+    age text not null,
     vaccinated boolean not null,
     castrated boolean not null,
     wormed boolean not null,

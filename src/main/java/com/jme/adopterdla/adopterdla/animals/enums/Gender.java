@@ -2,7 +2,7 @@ package com.jme.adopterdla.adopterdla.animals.enums;
 
 public enum Gender {
     MALE("Male"),
-    FEMALE("female");
+    FEMALE("Female");
 
     private final String gender;
 

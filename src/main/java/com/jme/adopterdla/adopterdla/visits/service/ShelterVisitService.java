@@ -6,7 +6,10 @@ import reactor.core.publisher.Mono;
 
 public interface ShelterVisitService {
     Mono<ShelterVisitDTO> findById(Long id);
+
     Flux<ShelterVisitDTO> findAll();
+
     Mono<ShelterVisitDTO> save(ShelterVisitDTO shelterVisitDTO);
+
     Mono<Void> deleteById(Long id);
 }

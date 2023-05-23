@@ -1,22 +1,26 @@
 package com.jme.adopterdla.adopterdla.common.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
+@Builder
 @NoArgsConstructor
 @Table("Schedules")
 public class Schedule {
 
     @Id
     private Long id;
+    private LocalDate scheduleDate;
     private Set<Integer> days;
     private int startTimeHour;
     private int startTimeMinute;

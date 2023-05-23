@@ -4,6 +4,7 @@ import com.jme.adopterdla.adopterdla.common.service.AzureFileUploadService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +23,14 @@ import java.util.UUID;
 public class AzurePersistImageUtils {
 
     private final AzureFileUploadService azureFileUploadService;
+
+
+    public Mono<String> saveImageData(String base64ImageData) {
+        byte[] decodedImageData = Base64.getDecoder().decode(base64ImageData);
+        DataBuffer dataBuffer = new DefaultDataBufferFactory().wrap(decodedImageData);
+        Flux<DataBuffer> imageDataFlux = Flux.just(dataBuffer);
+        return saveImageData(imageDataFlux, "jpeg");
+    }
 
     /**
      * Saves the given image data to a file and returns a Mono that emits the public URL of the saved image.

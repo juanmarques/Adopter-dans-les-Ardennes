@@ -1,13 +1,27 @@
 package com.jme.adopterdla.adopterdla.visits.dto;
 
-import com.jme.adopterdla.adopterdla.adopters.dto.AdopterDTO;
-import com.jme.adopterdla.adopterdla.animals.dto.AnimalDTO;
-import com.jme.adopterdla.adopterdla.common.ScheduleDTO;
+import lombok.Builder;
 
+import java.time.LocalDate;
+
+/**
+ * @author Juan Marques
+ * @created 21/05/2023
+ */
 public record ShelterVisitDTO(
+
         Long id,
-        ScheduleDTO schedule,
-        AnimalDTO animal,
-        AdopterDTO adopter
+        String name,
+        String phone,
+        String email,
+        Long animalId,
+        LocalDate date,
+        int hour,
+        int minute
 ) {
+
+    @Builder
+    public ShelterVisitDTO {
+
+    }
 }

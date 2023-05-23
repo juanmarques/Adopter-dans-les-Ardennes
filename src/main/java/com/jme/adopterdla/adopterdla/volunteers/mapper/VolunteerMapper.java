@@ -19,7 +19,7 @@ public interface VolunteerMapper {
     Volunteer toEntity(VolunteerDTO volunteerDTO);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateAdoptionProcessFromDTO(VolunteerDTO volunteerDTO, @MappingTarget Volunteer volunteer);
+    void updateVolunteerFromDTO(VolunteerDTO volunteerDTO, @MappingTarget Volunteer volunteer);
 
     @Named("scheduleToString")
     default String scheduleToString(Schedule schedule) {

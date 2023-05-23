@@ -1,40 +1,33 @@
 package com.jme.adopterdla.adopterdla.visits.service;
 
 import com.jme.adopterdla.adopterdla.adopters.entity.Adopter;
-import com.jme.adopterdla.adopterdla.adopters.mapper.AdopterMapper;
 import com.jme.adopterdla.adopterdla.adopters.repository.AdopterRepository;
-import com.jme.adopterdla.adopterdla.animals.entity.Animal;
-import com.jme.adopterdla.adopterdla.animals.mapper.AnimalMapper;
-import com.jme.adopterdla.adopterdla.animals.repository.AnimalRepository;
 import com.jme.adopterdla.adopterdla.common.entity.Schedule;
 import com.jme.adopterdla.adopterdla.common.entity.repository.ScheduleRepository;
-import com.jme.adopterdla.adopterdla.common.mapper.ScheduleMapper;
 import com.jme.adopterdla.adopterdla.visits.dto.ShelterVisitDTO;
 import com.jme.adopterdla.adopterdla.visits.entity.ShelterVisit;
-import com.jme.adopterdla.adopterdla.visits.mapper.ShelterVisitMapper;
 import com.jme.adopterdla.adopterdla.visits.repository.ShelterVisitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.DayOfWeek;
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 public class ShelterVisitServiceImpl implements ShelterVisitService {
 
     private final ShelterVisitRepository shelterVisitRepository;
-    private final AnimalRepository animalRepository;
     private final AdopterRepository adopterRepository;
-    private final ScheduleRepository schedulerRepository;
-    private final ScheduleMapper scheduleMapper;
-    private final AnimalMapper animalMapper;
-    private final AdopterMapper adopterMapper;
-    private final ShelterVisitMapper shelterVisitMapper;
+    private final ScheduleRepository scheduleRepository;
 
     /**
      * Find a ShelterVisit by id.
      *
      * @param id The id of the ShelterVisit to find.
+     *
      * @return A Mono of the ShelterVisitDTO.
      */
     @Override
@@ -58,65 +51,97 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
      * Save a ShelterVisit.
      *
      * @param shelterVisitDTO The ShelterVisitDTO to save.
+     *
      * @return A Mono of the saved ShelterVisitDTO.
      */
     @Override
     public Mono<ShelterVisitDTO> save(ShelterVisitDTO shelterVisitDTO) {
-        // If the id is null, it's a new ShelterVisit.
-        if (shelterVisitDTO.id() == null) {
-            ShelterVisit shelterVisit = shelterVisitMapper.toEntity(shelterVisitDTO);
-            return shelterVisitRepository.save(shelterVisit)
-                    .flatMap(this::toDTO);
-        } else {
-            // If the id is not null, find the existing ShelterVisit and update it.
-            return shelterVisitRepository.findById(shelterVisitDTO.id())
-                    .flatMap(existingShelterVisit -> {
-                        shelterVisitMapper.updateShelterVisitFromDTO(shelterVisitDTO, existingShelterVisit);
-                        return shelterVisitRepository.save(existingShelterVisit);
-                    })
-                    .flatMap(this::toDTO);
-        }
+        return Mono.justOrEmpty(shelterVisitDTO.id())
+                .flatMap(shelterVisitRepository::findById)
+                .defaultIfEmpty(new ShelterVisit())
+                .zipWhen(shelterVisit -> adopterRepository.findByEmail(shelterVisitDTO.email())
+                        .defaultIfEmpty(new Adopter()))
+                .flatMap(tuple -> {
+                    ShelterVisit shelterVisit = tuple.getT1();
+                    Adopter adopter = tuple.getT2();
+
+                    adopter.setName(shelterVisitDTO.name());
+                    adopter.setEmail(shelterVisitDTO.email());
+                    adopter.setPhone(shelterVisitDTO.phone());
+
+                    shelterVisit.setAnimalId(shelterVisitDTO.animalId());
+                    shelterVisit.setAdopterId(adopter.getId());
+
+                    Mono<Schedule> scheduleMono;
+                    if (shelterVisit.getScheduleId() != null) {
+                        scheduleMono = scheduleRepository.findById(shelterVisit.getScheduleId());
+                    } else {
+                        scheduleMono = Mono.just(new Schedule());
+                    }
+
+                    return Mono.zip(
+                            adopterRepository.save(adopter),
+                            scheduleMono
+                                    .doOnNext(schedule -> {
+                                        schedule.setScheduleDate(shelterVisitDTO.date());
+                                        schedule.setDays(Collections.singleton(DayOfWeek.of(shelterVisitDTO.date().getDayOfWeek().getValue()).getValue()));
+                                        schedule.setStartTimeHour(shelterVisitDTO.hour());
+                                        schedule.setEndTimeMinute(shelterVisitDTO.minute());
+                                    })
+                                    .flatMap(scheduleRepository::save)
+                                    .doOnNext(schedule -> shelterVisit.setScheduleId(schedule.getId())),
+                            Mono.just(shelterVisit)
+                    );
+                })
+                .flatMap(tuple -> shelterVisitRepository.save(tuple.getT3()))
+                .flatMap(this::toDTO);
     }
+
+
     /**
      * Delete a ShelterVisit by id.
      *
      * @param id The id of the ShelterVisit to delete.
+     *
      * @return A Mono of void indicating completion of the deletion operation.
      */
     @Override
     public Mono<Void> deleteById(Long id) {
-        return shelterVisitRepository.deleteById(id);
+        return shelterVisitRepository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("ShelterVisit not found")))
+                .flatMap(shelterVisit ->
+                        shelterVisitRepository.deleteById(id).then(
+                                scheduleRepository.deleteById(shelterVisit.getScheduleId()))
+                );
     }
+
 
     /**
      * Convert a ShelterVisit entity to a ShelterVisitDTO.
      *
      * @param shelterVisit The ShelterVisit entity to convert.
+     *
      * @return A Mono of the converted ShelterVisitDTO.
      */
     private Mono<ShelterVisitDTO> toDTO(ShelterVisit shelterVisit) {
-        if (shelterVisit == null) {
-            return Mono.empty();
-        }
-
-        // Retrieve related entities using their respective repositories
-        Mono<Animal> animalMono = animalRepository.findById(shelterVisit.getAnimalId());
-        Mono<Adopter> adopterMono = adopterRepository.findById(shelterVisit.getAdopterId());
-        Mono<Schedule> scheduleMono = schedulerRepository.findById(shelterVisit.getScheduleId());
-
-        // Zip the related entities and map them to a ShelterVisitDTO
-        return Mono.zip(scheduleMono, animalMono, adopterMono)
+        return Mono.just(shelterVisit)
+                .zipWith(adopterRepository.findById(shelterVisit.getAdopterId()))
+                .zipWith(scheduleRepository.findById(shelterVisit.getScheduleId()))
                 .map(tuple -> {
-                    Schedule schedule = tuple.getT1();
-                    Animal animal = tuple.getT2();
-                    Adopter adopter = tuple.getT3();
+                    ShelterVisit shelter = tuple.getT1().getT1();
+                    Adopter adopter = tuple.getT1().getT2();
+                    Schedule schedule = tuple.getT2();
 
-                    return new ShelterVisitDTO(
-                            shelterVisit.getId(),
-                            scheduleMapper.toDTO(schedule),
-                            animalMapper.toAnimalDTO(animal),
-                            adopterMapper.toAdopterDTO(adopter)
-                    );
+                    return ShelterVisitDTO.builder()
+                            .id(shelter.getId())
+                            .name(adopter.getName())
+                            .phone(adopter.getPhone())
+                            .email(adopter.getEmail())
+                            .animalId(shelter.getAnimalId())
+                            .date(schedule.getScheduleDate())
+                            .hour(schedule.getStartTimeHour())
+                            .minute(schedule.getEndTimeMinute())
+                            .build();
                 });
     }
 

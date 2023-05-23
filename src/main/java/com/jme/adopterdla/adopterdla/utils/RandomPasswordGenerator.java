@@ -1,11 +1,8 @@
 package com.jme.adopterdla.adopterdla.utils;
 
-import java.util.Random;
+import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-/**
- * RandomPasswordGenerator is a utility class for generating random passwords.
- */
 public class RandomPasswordGenerator {
     // Set of characters to be used in the random password
     private static final String PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
@@ -20,8 +17,8 @@ public class RandomPasswordGenerator {
      */
     public static String generateRandomPassword() {
         // Create a RandomGenerator instance using the RandomGeneratorFactory from Java 17
-        RandomGeneratorFactory<Random> factory = RandomGeneratorFactory.of("L32X64MixRandom");
-        Random random = factory.create(17);
+        RandomGeneratorFactory<RandomGenerator> factory = RandomGeneratorFactory.of("L32X64MixRandom");
+        RandomGenerator random = factory.create(17);
 
         // Initialize a StringBuilder with the desired password length
         StringBuilder password = new StringBuilder(PASSWORD_LENGTH);

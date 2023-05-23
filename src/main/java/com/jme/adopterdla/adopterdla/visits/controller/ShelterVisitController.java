@@ -27,14 +27,24 @@ public class ShelterVisitController {
     }
 
     @PostMapping
-    public Mono<ShelterVisitDTO> createShelterVisit(@RequestBody ShelterVisitDTO shelterVisitDTO) {
-        return shelterVisitService.save(shelterVisitDTO);
+    public Mono<ShelterVisitDTO> createShelterVisit(@RequestBody ShelterVisitDTO visitRequestDTO) {
+        return shelterVisitService.save(visitRequestDTO);
     }
 
     @PutMapping("/{id}")
     public Mono<ShelterVisitDTO> updateShelterVisit(@PathVariable Long id, @RequestBody ShelterVisitDTO shelterVisitDTO) {
-        shelterVisitDTO = new ShelterVisitDTO(id, shelterVisitDTO.schedule(), shelterVisitDTO.animal(), shelterVisitDTO.adopter());
-        return shelterVisitService.save(shelterVisitDTO);
+
+        ShelterVisitDTO updatedDTO = new ShelterVisitDTO(
+                id,
+                shelterVisitDTO.name(),
+                shelterVisitDTO.phone(),
+                shelterVisitDTO.email(),
+                shelterVisitDTO.animalId(),
+                shelterVisitDTO.date(),
+                shelterVisitDTO.hour(),
+                shelterVisitDTO.minute()
+        );
+        return shelterVisitService.save(updatedDTO);
     }
 
     @DeleteMapping("/{id}")

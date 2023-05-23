@@ -34,31 +34,12 @@ public class VolunteerController {
         return volunteerService.findAll();
     }
 
-    @PostMapping()
-    @Operation(summary = "Create a new volunteer")
+    @PostMapping
+    @Operation(summary = "Create / Update volunteer ")
     public Mono<VolunteerDTO> createVolunteer(
             @RequestBody @Parameter(description = "Volunteer DTO with the volunteer's information", required = true, schema = @Schema(implementation = VolunteerDTO.class))
             VolunteerDTO volunteerDTO) {
-        return volunteerService.save(volunteerDTO, null);
-    }
-
-/*    @PostMapping("/upload_image")
-    @Operation(summary = "Upload image for a volunteer")
-    public Mono<VolunteerDTO> uploadImage(
-            @RequestParam("volunteerId") String volunteerId,
-            @RequestPart(name = "imageData", required = false) FilePart imageData) {
-        return volunteerService.uploadImage(volunteerId, imageData);
-    }*/
-
-
-    @PutMapping("/{id}")
-    @Operation(summary = "Update a volunteer by ID")
-    public Mono<VolunteerDTO> updateVolunteer(
-            @Parameter(description = "Volunteer ID", required = true)
-            @PathVariable Long id,
-            @Parameter(description = "Volunteer DTO with updated information", required = true, schema = @Schema(implementation = VolunteerDTO.class))
-            @RequestPart("imageData") FilePart imageData, @RequestPart("data") VolunteerDTO volunteerDTO) {
-        return volunteerService.save(volunteerDTO, imageData);
+        return volunteerService.save(volunteerDTO);
     }
 
     @DeleteMapping("/{id}")

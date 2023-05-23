@@ -22,7 +22,8 @@ public record VolunteerDTO(
         String phone,
         @Email @Nullable String email,
         String scheduleString,
-        boolean active
+        boolean active,
+        String imageBase64
 ) {
 }
 

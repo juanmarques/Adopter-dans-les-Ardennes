@@ -10,10 +10,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +29,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("api/animals")
 @RequiredArgsConstructor
 @Tag(name = "Animal", description = "API for Animal operations")
+@Log4j2
 public class AnimalController {
 
     private final AnimalService animalService;
@@ -29,8 +38,9 @@ public class AnimalController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a new animal")
     @ApiResponse(responseCode = "201", description = "Animal created", content = @Content(schema = @Schema(implementation = AnimalDTO.class)))
-    public Mono<AnimalDTO> createAnimal(@RequestPart("imageData") FilePart imageData, @RequestPart("data") AnimalDTO animalDTO) {
-        return animalService.createAnimal(animalDTO, imageData);
+    public Mono<AnimalDTO> createAnimal(@RequestBody AnimalDTO animalDTO) {
+        log.info("Animal request {}", animalDTO);
+        return animalService.createAnimal(animalDTO);
     }
 
     @GetMapping("/{id}")
@@ -53,16 +63,6 @@ public class AnimalController {
     @ApiResponse(responseCode = "200", description = "List of animals", content = @Content(array = @ArraySchema(schema = @Schema(implementation = AnimalDTO.class))))
     public Flux<AnimalDTO> getAllAnimalsByIsAvailable(@Parameter(description = "Availability status") @RequestParam boolean isAvailable) {
         return animalService.getAllAnimalsByIsAvailable(isAvailable);
-    }
-
-    @PutMapping(value = "/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "Update an animal by ID")
-    @ApiResponse(responseCode = "204", description = "Animal updated")
-    @ApiResponse(responseCode = "404", description = "Animal not found")
-    public Mono<Void> updateAnimal(@Parameter(description = "Animal ID") @PathVariable("id") Long id,
-                                   @RequestPart("data") AnimalDTO animalDTO,
-                                   @RequestPart(value = "imageData",required = false) FilePart imageData) {
-        return animalService.updateAnimal(id, animalDTO, imageData);
     }
 
     @DeleteMapping("/{id}")

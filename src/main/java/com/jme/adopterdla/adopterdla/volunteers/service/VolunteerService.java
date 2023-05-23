@@ -10,7 +10,7 @@ public interface VolunteerService {
 
     Flux<VolunteerDTO> findAll();
 
-    Mono<VolunteerDTO> save(VolunteerDTO volunteerDTO, FilePart imageData);
+    Mono<VolunteerDTO> save(VolunteerDTO volunteerDTO);
 
     Mono<Void> deleteById(Long id);
 }

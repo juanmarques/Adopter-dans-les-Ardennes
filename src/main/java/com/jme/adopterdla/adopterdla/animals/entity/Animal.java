@@ -21,7 +21,7 @@ public class Animal{
     private String arrivalDate;
     private String imageUrl;
     private Gender gender;
-    private Integer age;
+    private String age;
     private Boolean vaccinated;
     private Boolean castrated;
     private Boolean wormed;
