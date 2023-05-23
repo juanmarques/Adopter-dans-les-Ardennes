@@ -59,8 +59,10 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
         return Mono.justOrEmpty(shelterVisitDTO.id())
                 .flatMap(shelterVisitRepository::findById)
                 .defaultIfEmpty(new ShelterVisit())
-                .zipWhen(shelterVisit -> adopterRepository.findById(shelterVisitDTO.adopterIdId())
-                        .defaultIfEmpty(new Adopter()))
+                .zipWhen(shelterVisit -> shelterVisit.getAdopterId() != null ?
+                        adopterRepository.findById(shelterVisitDTO.adopterIdId()) :
+                        adopterRepository.findByEmail(shelterVisitDTO.email())
+                                .defaultIfEmpty(new Adopter()))
                 .flatMap(tuple -> {
                     ShelterVisit shelterVisit = tuple.getT1();
                     Adopter adopter = tuple.getT2();
@@ -68,9 +70,7 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
                     adopter.setName(shelterVisitDTO.name());
                     adopter.setEmail(shelterVisitDTO.email());
                     adopter.setPhone(shelterVisitDTO.phone());
-
                     shelterVisit.setAnimalId(shelterVisitDTO.animalId());
-                    shelterVisit.setAdopterId(adopter.getId());
 
                     Mono<Schedule> scheduleMono;
                     if (shelterVisit.getScheduleId() != null) {
@@ -80,7 +80,7 @@ public class ShelterVisitServiceImpl implements ShelterVisitService {
                     }
 
                     return Mono.zip(
-                            adopterRepository.save(adopter),
+                            adopterRepository.save(adopter).doOnNext(adopter1 -> shelterVisit.setAdopterId(adopter1.getId())),
                             scheduleMono
                                     .doOnNext(schedule -> {
                                         schedule.setScheduleDate(shelterVisitDTO.date());
